@@ -8,13 +8,25 @@ class MDOFinputs:
     def __init__(self,designVar):
         self.designVar=designVar
         self.x=np.zeros((len(designVar),),'d')
+        self.TOL=1e-10
 
     def setValue(self,xx):
         m=0
+        e=0
         for x in xx:
+            e+=(self.x[m]-x)*(self.x[m]-x)
             self.x[m]=x
             m=m+1
-   
+        e=np.sqrt(e/m)
+        if (e < self.TOL):
+            return 0
+        else:
+            return 1
+
+    def save(self,response):
+        self.response=response
+    def getResponse(self):
+        return self.response
     def inputVar(self):
         def inputs():
             return self.x
@@ -30,10 +42,17 @@ class FunctionsAndConstraints:
         self.inputs=inputs
         self.outputs=outputs
 
+    def response(self,x):
+        if (self.inputObject.setValue(x)==1):
+            response=self.outputs(self.inputs)     
+            self.inputObject.save(response)       
+        else:
+            response=self.inputObject.getResponse()
+        return response
+
     def get(self,funcType,funcName,constraintValue=None,constraintType=None):
         def func(x):
-            self.inputObject.setValue(x)
-            response=self.outputs(self.inputs)            
+            response=self.response(x)
             m=response['varNames'].index(funcName)
             if constraintValue is None:
                 return response['values'][m] 
@@ -44,8 +63,7 @@ class FunctionsAndConstraints:
                     return (response['values'][m]-constraintValue)
 
         def eqfunc(x):
-            self.inputObject.setValue(x)
-            response=self.outputs(self.inputs)
+            response=self.response(x)
             name1=funcName.split('=')[0]
             name2=funcName.split('=')[1]
             m1=response['varNames'].index(name1)
@@ -53,8 +71,7 @@ class FunctionsAndConstraints:
             return (response['values'][m1]-response['values'][m2])
 
         def eqgrad(x):
-            self.inputObject.setValue(x)
-            response=self.outputs(self.inputs)
+            response=self.response(x)
             name1=funcName.split('=')[0]
             name2=funcName.split('=')[1]
             m1=response['varNames'].index(name1)
@@ -62,8 +79,7 @@ class FunctionsAndConstraints:
             return response['sensitivity'][m1,:]-response['sensitivity'][m2,:]
 
         def grad(x):
-            self.inputObject.setValue(x)
-            response=self.outputs(self.inputs)
+            response=self.response(x)
             m=response['varNames'].index(funcName)
             if constraintValue is None:
                 return response['sensitivity'][m,:]
