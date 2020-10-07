@@ -21,12 +21,13 @@ class WeightModel:
             kt=0.01   # factor for hub weight
             kp=0.005  # factor for engine weight
             emptyWeight=self.modelParams['emptyWeight']
+            payLoad=self.modelParams['payLoad']
             #
             # Weight = empty weight + blade weight + hub weight + engine weight
             # hub weight    = kt*Thrust
             # engine weight = kp*Power
             #
-            Weight=emptyWeight+rhos*sigma*np.pi*R*R+kt*T+kp*P 
+            Weight=emptyWeight+payLoad+rhos*sigma*np.pi*R*R+kt*T+kp*P 
             #
             dWeight_dCl=0
             dWeight_dR=rhos*sigma*np.pi*2*R

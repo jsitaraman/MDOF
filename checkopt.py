@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.optimize import Bounds
 from scipy.optimize import minimize
+from scipy.optimize import NonlinearConstraint
+from scipy.optimize import BFGS
+from scipy.optimize import SR1
 #
 def rosen(x):
     """The Rosenbrock function"""
@@ -30,6 +33,14 @@ eq_cons = {'type': 'eq',
 
 x0=np.array([0.5,0])
 bounds = Bounds([0, -0.5], [1.0, 2.0])
-res = minimize(rosen, x0, method='SLSQP', jac=rosen_der,
-               constraints=[eq_cons,ineq_cons], options={'ftol': 1e-9, 'disp': True},
-               bounds=bounds)
+
+
+nonlinear_constraint = NonlinearConstraint(ineq_cons['fun'], [0.0,0.0,0.0], [0.1,0.1,0.1], jac=ineq_cons['jac'], hess=BFGS())
+
+#res = minimize(rosen, x0, method='SLSQP', jac=rosen_der,
+#               constraints=[eq_cons,ineq_cons], options={'ftol': 1e-9, 'disp': True},
+#               bounds=bounds)
+
+res = minimize(rosen, x0, method='trust-constr',  jac=rosen_der, hess=SR1(),
+               constraints=[nonlinear_constraint],
+               options={'verbose': 1}, bounds=bounds)
