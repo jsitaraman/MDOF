@@ -76,7 +76,7 @@ x=opt2.optimize(x0,lb,ub,1.0) # optimize such that abs(T-W) < 1 N
 print('designNames   :',designvar)
 print('values        :',x)
 #
-resp=outputs(inputs)
+resp=inputObject.getResponse()
 print('stateNames    :',resp['varNames'])
 print('values        :',resp['values'])
 #
