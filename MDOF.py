@@ -8,7 +8,7 @@ class MDOFinputs:
     def __init__(self,designVar):
         self.designVar=designVar
         self.x=np.zeros((len(designVar),),'d')
-        self.TOL=1e-10
+        self.TOL=1e-15
 
     def setValue(self,xx):
         m=0
@@ -50,12 +50,12 @@ class FunctionsAndConstraints:
             response=self.inputObject.getResponse()
         return response
 
-    def get(self,funcType,funcName,constraintValue=None,constraintType=None):
+    def get(self,funcType,funcName,fsign=1,constraintValue=None,constraintType=None):
         def func(x):
             response=self.response(x)
             m=response['varNames'].index(funcName)
             if constraintValue is None:
-                return response['values'][m] 
+                return fsign*response['values'][m] 
             else:
                 if constraintType=='eq':
                     return abs(response['values'][m]-constraintValue)
@@ -68,7 +68,7 @@ class FunctionsAndConstraints:
             name2=funcName.split('=')[1]
             m1=response['varNames'].index(name1)
             m2=response['varNames'].index(name2)
-            return (response['values'][m1]-response['values'][m2])
+            return fsign*(response['values'][m1]-response['values'][m2])
 
         def eqgrad(x):
             response=self.response(x)
@@ -76,13 +76,13 @@ class FunctionsAndConstraints:
             name2=funcName.split('=')[1]
             m1=response['varNames'].index(name1)
             m2=response['varNames'].index(name2)
-            return response['sensitivity'][m1,:]-response['sensitivity'][m2,:]
+            return fsign*(response['sensitivity'][m1,:]-response['sensitivity'][m2,:])
 
         def grad(x):
             response=self.response(x)
             m=response['varNames'].index(funcName)
             if constraintValue is None:
-                return response['sensitivity'][m,:]
+                return fsign*response['sensitivity'][m,:]
             else:
                 if constraintType=='eq':
                     if response['values'][m] > constraintValue:
@@ -90,7 +90,7 @@ class FunctionsAndConstraints:
                     else:
                         return -response['sensitivity'][m,:]
                 else:
-                    return response['sensitivity'][m,:]
+                    return fsign*response['sensitivity'][m,:]
 
         if funcType=='function' or funcType=='constraint':
             if '=' not in funcName:

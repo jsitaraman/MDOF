@@ -9,7 +9,7 @@ class WeightModel:
         # A simple weight model
         def simpleWeight(inputs):
             x=inputs()
-            if auxInputs!=None:
+            if auxInputs!=inputs:
                 aux=auxInputs(inputs)
             #
             R=x[1]
@@ -37,13 +37,19 @@ class WeightModel:
             dWeight_dT=kt
             dWeight_dP=kp
             #
+            payLoad=T-Weight
+            #
             outputs=aux
             outputs['varNames'].append('Weight')
-            outputs['values']=np.hstack([outputs['values'],np.array([Weight],'d')])
+            outputs['varNames'].append('PayLoad')
+            outputs['values']=np.hstack([outputs['values'],np.array([Weight,payLoad],'d')])
             sensitivity=np.array([dWeight_dCl,dWeight_dR,dWeight_dOmega,dWeight_dsigma],'d')
             localAuxSensitivity=np.array([kt,kp])
             sensitivity+=np.dot(localAuxSensitivity,aux['sensitivity'])
             outputs['sensitivity']=np.vstack([outputs['sensitivity'],sensitivity])
+            ts=outputs['sensitivity'][outputs['varNames'].index('Thrust'),:]
+            ps=ts-sensitivity
+            outputs['sensitivity']=np.vstack([outputs['sensitivity'],ps])
             #
             return outputs
 
